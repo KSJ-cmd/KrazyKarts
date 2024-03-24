@@ -25,6 +25,9 @@ void AGoKart::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	FVector Force =GetActorForwardVector()* MaxDrivingForce * Throttle;
+	FVector Acceleration = Force / Mass; 
+	Velocity = Velocity + Acceleration * DeltaTime;
 	FVector Translation = Velocity *DeltaTime *100;
 
 	AddActorWorldOffset(Translation);
@@ -48,9 +51,9 @@ void AGoKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		//EnhancedInputComponent->BindAction(ThrottleAction, ETriggerEvent::Completed, this, &AKrazyKartsPawn::Throttle);
 
 		//// break 
-		//EnhancedInputComponent->BindAction(BrakeAction, ETriggerEvent::Triggered, this, &AKrazyKartsPawn::Brake);
-		//EnhancedInputComponent->BindAction(BrakeAction, ETriggerEvent::Started, this, &AKrazyKartsPawn::StartBrake);
-		//EnhancedInputComponent->BindAction(BrakeAction, ETriggerEvent::Completed, this, &AKrazyKartsPawn::StopBrake);
+		EnhancedInputComponent->BindAction(BrakeAction, ETriggerEvent::Triggered, this, &AGoKart::Brake);
+		EnhancedInputComponent->BindAction(BrakeAction, ETriggerEvent::Started, this, &AGoKart::StartBrake);
+		EnhancedInputComponent->BindAction(BrakeAction, ETriggerEvent::Completed, this, &AGoKart::StopBrake);
 
 		//// handbrake 
 		//EnhancedInputComponent->BindAction(HandbrakeAction, ETriggerEvent::Started, this, &AKrazyKartsPawn::StartHandbrake);
@@ -73,6 +76,20 @@ void AGoKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AGoKart::MoveForward(const FInputActionValue& Value)
 {
-	Velocity = 20 * Value.Get<float>() * GetActorForwardVector();
+	Throttle = Value.Get<float>();
+}
+
+void AGoKart::Brake(const FInputActionValue& InputActionValue)
+{
+	Throttle = -1 * InputActionValue.Get<float>();
+}
+
+void AGoKart::StartBrake(const FInputActionValue& InputActionValue)
+{
+}
+
+void AGoKart::StopBrake(const FInputActionValue& InputActionValue)
+{
+	Throttle = 0;
 }
 
