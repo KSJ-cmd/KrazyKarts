@@ -63,6 +63,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UInputAction* ResetVehicleAction;
 private:
+	FVector GetResistance();
+
+	void ApplyRotation(float DeltaTime);
 
 	void UpdateLocationFromVelocity(float DeltaTime);
 
@@ -71,7 +74,11 @@ private:
 	void Brake(const FInputActionValue& InputActionValue);
 	void StartBrake(const FInputActionValue& InputActionValue);
 	void StopBrake(const FInputActionValue& InputActionValue);
+
+	void MoveRight(const FInputActionValue& Value);
 private:
+
+
 	//The Mass of the car (KG)
 	UPROPERTY(EditAnywhere)
 	float Mass = 1000;
@@ -79,9 +86,20 @@ private:
 	UPROPERTY(EditAnywhere)
 	float MaxDrivingForce = 10000;
 
+	UPROPERTY(EditAnywhere)
+	float MaxDegreePerSecond= 90;
+
 	FVector Velocity;
 
+
+	UPROPERTY(EditAnywhere)
+	float DragCoefficient = 16;
+
 	float Throttle;
+
+	float SteeringThrow;
+
+
 };
 
 

@@ -20,6 +20,20 @@ void AGoKart::BeginPlay()
 	
 }
 
+FVector AGoKart::GetResistance()
+{
+	return -Velocity.GetSafeNormal() * Velocity.SizeSquared() * DragCoefficient;
+}
+
+void AGoKart::ApplyRotation(float DeltaTime)
+{
+	const auto RotationAngle = SteeringThrow * MaxDegreePerSecond * DeltaTime;
+	const FQuat RotationDelta(GetActorUpVector(), FMath::DegreesToRadians(RotationAngle));
+	Velocity = RotationDelta.RotateVector(Velocity);
+
+	AddActorWorldRotation(RotationDelta, true);
+}
+
 void AGoKart::UpdateLocationFromVelocity(float DeltaTime)
 {
 	FVector Translation = Velocity *DeltaTime *100;
@@ -29,7 +43,6 @@ void AGoKart::UpdateLocationFromVelocity(float DeltaTime)
 	if(HitResult.IsValidBlockingHit())
 	{
 		Velocity = FVector::ZeroVector;
-
 	}
 }
 
@@ -38,9 +51,11 @@ void AGoKart::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	FVector Force =GetActorForwardVector()* MaxDrivingForce * Throttle;
-	FVector Acceleration = Force / Mass; 
+	const FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle + GetResistance();
+	const FVector Acceleration = Force / Mass; 
 	Velocity = Velocity + Acceleration * DeltaTime;
+	ApplyRotation(DeltaTime);
+	
 	UpdateLocationFromVelocity(DeltaTime);
 }
 
@@ -54,8 +69,8 @@ void AGoKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EnhancedInputComponent->BindAction(ThrottleAction, ETriggerEvent::Triggered, this, &AGoKart::MoveForward);
 		EnhancedInputComponent->BindAction(ThrottleAction, ETriggerEvent::Completed, this, &AGoKart::MoveForward);
 		// steering 
-		//EnhancedInputComponent->BindAction(SteeringAction, ETriggerEvent::Triggered, this, &AKrazyKartsPawn::Steering);
-		//EnhancedInputComponent->BindAction(SteeringAction, ETriggerEvent::Completed, this, &AKrazyKartsPawn::Steering);
+		EnhancedInputComponent->BindAction(SteeringAction, ETriggerEvent::Triggered, this, &AGoKart::MoveRight);
+		EnhancedInputComponent->BindAction(SteeringAction, ETriggerEvent::Completed, this, &AGoKart::MoveRight);
 
 		//// throttle 
 		//EnhancedInputComponent->BindAction(ThrottleAction, ETriggerEvent::Triggered, this, &AKrazyKartsPawn::Throttle);
@@ -102,5 +117,10 @@ void AGoKart::StartBrake(const FInputActionValue& InputActionValue)
 void AGoKart::StopBrake(const FInputActionValue& InputActionValue)
 {
 	Throttle = 0;
+}
+
+void AGoKart::MoveRight(const FInputActionValue& Value)
+{
+	SteeringThrow = Value.Get<float>();
 }
 
