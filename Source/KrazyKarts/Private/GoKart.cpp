@@ -20,6 +20,19 @@ void AGoKart::BeginPlay()
 	
 }
 
+void AGoKart::UpdateLocationFromVelocity(float DeltaTime)
+{
+	FVector Translation = Velocity *DeltaTime *100;
+
+	FHitResult HitResult;
+	AddActorWorldOffset(Translation,true, &HitResult);
+	if(HitResult.IsValidBlockingHit())
+	{
+		Velocity = FVector::ZeroVector;
+
+	}
+}
+
 // Called every frame
 void AGoKart::Tick(float DeltaTime)
 {
@@ -28,9 +41,7 @@ void AGoKart::Tick(float DeltaTime)
 	FVector Force =GetActorForwardVector()* MaxDrivingForce * Throttle;
 	FVector Acceleration = Force / Mass; 
 	Velocity = Velocity + Acceleration * DeltaTime;
-	FVector Translation = Velocity *DeltaTime *100;
-
-	AddActorWorldOffset(Translation);
+	UpdateLocationFromVelocity(DeltaTime);
 }
 
 // Called to bind functionality to input

@@ -64,6 +64,8 @@ protected:
 	UInputAction* ResetVehicleAction;
 private:
 
+	void UpdateLocationFromVelocity(float DeltaTime);
+
 	void MoveForward(const FInputActionValue& Value);
 
 	void Brake(const FInputActionValue& InputActionValue);
