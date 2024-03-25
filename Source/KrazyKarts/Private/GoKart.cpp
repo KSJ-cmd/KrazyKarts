@@ -44,6 +44,8 @@ void AGoKart::ApplyRotation(float DeltaTime)
 	const FQuat RotationDelta(GetActorUpVector(), RotationAngle);
 
 	Velocity = RotationDelta.RotateVector(Velocity);
+
+	AddActorWorldRotation(RotationDelta);
 }
 void AGoKart::UpdateLocationFromVelocity(float DeltaTime)
 {
