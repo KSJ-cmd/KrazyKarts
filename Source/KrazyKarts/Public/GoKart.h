@@ -71,13 +71,15 @@ private:
 
 	void UpdateLocationFromVelocity(float DeltaTime);
 
-	void MoveForward(const FInputActionValue& Value);
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_MoveForward(const FInputActionValue& Value);
 
 	void Brake(const FInputActionValue& InputActionValue);
 	void StartBrake(const FInputActionValue& InputActionValue);
 	void StopBrake(const FInputActionValue& InputActionValue);
 
-	void MoveRight(const FInputActionValue& Value);
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_MoveRight(const FInputActionValue& Value);
 private:
 
 

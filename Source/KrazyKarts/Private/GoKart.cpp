@@ -57,6 +57,8 @@ void AGoKart::UpdateLocationFromVelocity(float DeltaTime)
 	}
 }
 
+
+
 // Called every frame
 void AGoKart::Tick(float DeltaTime)
 {
@@ -79,11 +81,11 @@ void AGoKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 
-		EnhancedInputComponent->BindAction(ThrottleAction, ETriggerEvent::Triggered, this, &AGoKart::MoveForward);
-		EnhancedInputComponent->BindAction(ThrottleAction, ETriggerEvent::Completed, this, &AGoKart::MoveForward);
+		EnhancedInputComponent->BindAction(ThrottleAction, ETriggerEvent::Triggered, this, &AGoKart::Server_MoveForward);
+		EnhancedInputComponent->BindAction(ThrottleAction, ETriggerEvent::Completed, this, &AGoKart::Server_MoveForward);
 		// steering 
-		EnhancedInputComponent->BindAction(SteeringAction, ETriggerEvent::Triggered, this, &AGoKart::MoveRight);
-		EnhancedInputComponent->BindAction(SteeringAction, ETriggerEvent::Completed, this, &AGoKart::MoveRight);
+		EnhancedInputComponent->BindAction(SteeringAction, ETriggerEvent::Triggered, this, &AGoKart::Server_MoveRight);
+		EnhancedInputComponent->BindAction(SteeringAction, ETriggerEvent::Completed, this, &AGoKart::Server_MoveRight);
 
 		//// throttle 
 		//EnhancedInputComponent->BindAction(ThrottleAction, ETriggerEvent::Triggered, this, &AKrazyKartsPawn::Throttle);
@@ -112,12 +114,15 @@ void AGoKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		UE_LOG(LogTemp, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
 }
-
-void AGoKart::MoveForward(const FInputActionValue& Value)
+void AGoKart::Server_MoveForward_Implementation(const FInputActionValue& Value)
 {
 	Throttle = Value.Get<float>();
 }
 
+bool AGoKart::Server_MoveForward_Validate(const FInputActionValue& Value)
+{
+	return FMath::Abs(Value.Get<float>()) <= 1;
+}
 void AGoKart::Brake(const FInputActionValue& InputActionValue)
 {
 	Throttle = -1 * InputActionValue.Get<float>();
@@ -132,8 +137,14 @@ void AGoKart::StopBrake(const FInputActionValue& InputActionValue)
 	Throttle = 0;
 }
 
-void AGoKart::MoveRight(const FInputActionValue& Value)
+void AGoKart::Server_MoveRight_Implementation(const FInputActionValue& Value)
 {
 	SteeringThrow = Value.Get<float>();
 }
+
+bool AGoKart::Server_MoveRight_Validate(const FInputActionValue& Value)
+{
+	return FMath::Abs(Value.Get<float>()) <= 1;
+}
+
 
