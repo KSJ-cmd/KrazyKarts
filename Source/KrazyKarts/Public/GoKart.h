@@ -29,6 +29,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+
 	
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -70,6 +71,8 @@ private:
 	void ApplyRotation(float DeltaTime);
 
 	void UpdateLocationFromVelocity(float DeltaTime);
+	//Input Func
+	void MoveForward(const FInputActionValue& InputActionValue);
 
 	UFUNCTION(Server,Reliable,WithValidation)
 	void Server_MoveForward(const FInputActionValue& Value);
@@ -77,6 +80,9 @@ private:
 	void Brake(const FInputActionValue& InputActionValue);
 	void StartBrake(const FInputActionValue& InputActionValue);
 	void StopBrake(const FInputActionValue& InputActionValue);
+
+
+	void MoveRight(const FInputActionValue& Value);
 
 	UFUNCTION(Server,Reliable,WithValidation)
 	void Server_MoveRight(const FInputActionValue& Value);

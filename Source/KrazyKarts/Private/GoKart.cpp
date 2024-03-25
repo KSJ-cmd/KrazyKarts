@@ -5,6 +5,9 @@
 
 #include "EnhancedInputComponent.h"
 
+#include "DrawDebugHelpers.h"
+
+
 // Sets default values
 AGoKart::AGoKart()
 {
@@ -61,6 +64,23 @@ void AGoKart::UpdateLocationFromVelocity(float DeltaTime)
 
 
 
+FString GetEnumText(ENetRole Role)
+{
+	switch (Role)
+	{
+	case ROLE_None:
+		return "None";
+	case ROLE_SimulatedProxy:
+		return "SimulatedProxy";
+	case ROLE_AutonomousProxy:
+		return "AutonomousProxy";
+	case ROLE_Authority:
+		return "Authority";
+	default:
+		return "ERROR";
+	}
+}
+
 // Called every frame
 void AGoKart::Tick(float DeltaTime)
 {
@@ -74,6 +94,8 @@ void AGoKart::Tick(float DeltaTime)
 	ApplyRotation(DeltaTime);
 	
 	UpdateLocationFromVelocity(DeltaTime);
+	
+	DrawDebugString(GetWorld(), FVector(0, 0, 100), GetEnumText(GetLocalRole()), this, FColor::White, DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -83,11 +105,11 @@ void AGoKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 
-		EnhancedInputComponent->BindAction(ThrottleAction, ETriggerEvent::Triggered, this, &AGoKart::Server_MoveForward);
-		EnhancedInputComponent->BindAction(ThrottleAction, ETriggerEvent::Completed, this, &AGoKart::Server_MoveForward);
+		EnhancedInputComponent->BindAction(ThrottleAction, ETriggerEvent::Triggered, this, &AGoKart::MoveForward);
+		EnhancedInputComponent->BindAction(ThrottleAction, ETriggerEvent::Completed, this, &AGoKart::MoveForward);
 		// steering 
-		EnhancedInputComponent->BindAction(SteeringAction, ETriggerEvent::Triggered, this, &AGoKart::Server_MoveRight);
-		EnhancedInputComponent->BindAction(SteeringAction, ETriggerEvent::Completed, this, &AGoKart::Server_MoveRight);
+		EnhancedInputComponent->BindAction(SteeringAction, ETriggerEvent::Triggered, this, &AGoKart::MoveRight);
+		EnhancedInputComponent->BindAction(SteeringAction, ETriggerEvent::Completed, this, &AGoKart::MoveRight);
 
 		//// throttle 
 		//EnhancedInputComponent->BindAction(ThrottleAction, ETriggerEvent::Triggered, this, &AKrazyKartsPawn::Throttle);
@@ -116,6 +138,12 @@ void AGoKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		UE_LOG(LogTemp, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
 }
+
+void AGoKart::MoveForward(const FInputActionValue& Value)
+{
+	Throttle = Value.Get<float>();
+	Server_MoveForward(Value);
+}
 void AGoKart::Server_MoveForward_Implementation(const FInputActionValue& Value)
 {
 	Throttle = Value.Get<float>();
@@ -137,6 +165,12 @@ void AGoKart::StartBrake(const FInputActionValue& InputActionValue)
 void AGoKart::StopBrake(const FInputActionValue& InputActionValue)
 {
 	Throttle = 0;
+}
+
+void AGoKart::MoveRight(const FInputActionValue& Value)
+{
+	SteeringThrow = Value.Get<float>();
+	Server_MoveRight(Value);
 }
 
 void AGoKart::Server_MoveRight_Implementation(const FInputActionValue& Value)
