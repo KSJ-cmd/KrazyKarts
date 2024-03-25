@@ -63,7 +63,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UInputAction* ResetVehicleAction;
 private:
-	FVector GetResistance();
+	
+	FVector GetAirResistance() const;
+	FVector GetRollingResistance() const;
 
 	void ApplyRotation(float DeltaTime);
 
@@ -94,6 +96,10 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float DragCoefficient = 16;
+
+	// Higher means more rolling resistance.
+	UPROPERTY(EditAnywhere)
+	float RollingResistanceCoefficient = 0.015;
 
 	float Throttle;
 
