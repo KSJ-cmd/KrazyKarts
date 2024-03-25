@@ -88,8 +88,9 @@ private:
 	UPROPERTY(EditAnywhere)
 	float MaxDrivingForce = 10000;
 
+	// Minimum radius of the car turning circle at full lock (m).
 	UPROPERTY(EditAnywhere)
-	float MaxDegreePerSecond= 90;
+	float MinTurningRadius = 10;
 
 	FVector Velocity;
 

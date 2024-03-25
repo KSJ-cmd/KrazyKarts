@@ -35,13 +35,16 @@ FVector AGoKart::GetRollingResistance() const
 
 void AGoKart::ApplyRotation(float DeltaTime)
 {
-	const auto RotationAngle = SteeringThrow * MaxDegreePerSecond * DeltaTime;
+	/*const auto RotationAngle = SteeringThrow * MaxDegreePerSecond * DeltaTime;
 	const FQuat RotationDelta(GetActorUpVector(), FMath::DegreesToRadians(RotationAngle));
+	*/
+
+	const float DeltaLocation = FVector::DotProduct(GetActorForwardVector(), Velocity) * DeltaTime;
+	const float RotationAngle = DeltaLocation / MinTurningRadius * SteeringThrow;
+	const FQuat RotationDelta(GetActorUpVector(), RotationAngle);
+
 	Velocity = RotationDelta.RotateVector(Velocity);
-
-	AddActorWorldRotation(RotationDelta, true);
 }
-
 void AGoKart::UpdateLocationFromVelocity(float DeltaTime)
 {
 	FVector Translation = Velocity *DeltaTime *100;
