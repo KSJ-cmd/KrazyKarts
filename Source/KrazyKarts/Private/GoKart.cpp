@@ -22,7 +22,10 @@ AGoKart::AGoKart()
 void AGoKart::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	if (HasAuthority())
+	{
+		NetUpdateFrequency = 1;
+	}
 }
 
 FVector AGoKart::GetAirResistance() const
@@ -67,8 +70,7 @@ void AGoKart::UpdateLocationFromVelocity(float DeltaTime)
 void AGoKart::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AGoKart, ReplicatedLocation);
-	DOREPLIFETIME(AGoKart, ReplicatedRotation);
+	DOREPLIFETIME(AGoKart, ReplicatedTranform);
 }
 
 FString GetEnumText(ENetRole Role)
@@ -104,13 +106,7 @@ void AGoKart::Tick(float DeltaTime)
 
 	if (HasAuthority())
 	{
-		ReplicatedLocation = GetActorLocation();
-		ReplicatedRotation = GetActorRotation();
-	}
-	else
-	{
-		SetActorLocation(ReplicatedLocation);
-		SetActorRotation(ReplicatedRotation);
+		ReplicatedTranform = GetActorTransform();
 	}
 	
 	DrawDebugString(GetWorld(), FVector(0, 0, 100), GetEnumText(GetLocalRole()), this, FColor::White, DeltaTime);
@@ -189,6 +185,11 @@ void AGoKart::MoveRight(const FInputActionValue& Value)
 {
 	SteeringThrow = Value.Get<float>();
 	Server_MoveRight(Value);
+}
+
+void AGoKart::OnRep_ReplicatedTranform()
+{
+	SetActorTransform(ReplicatedTranform);
 }
 
 void AGoKart::Server_MoveRight_Implementation(const FInputActionValue& Value)
