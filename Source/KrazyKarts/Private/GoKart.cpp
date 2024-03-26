@@ -71,6 +71,10 @@ void AGoKart::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetim
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AGoKart, ReplicatedTranform);
+	DOREPLIFETIME(AGoKart, Throttle);
+	DOREPLIFETIME(AGoKart, SteeringThrow);
+	DOREPLIFETIME(AGoKart, Velocity);
+
 }
 
 FString GetEnumText(ENetRole Role)
@@ -155,11 +159,13 @@ void AGoKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AGoKart::MoveForward(const FInputActionValue& Value)
 {
+	UE_LOG(LogTemp, Warning, TEXT("AGoKart::MoveForward"));
 	Throttle = Value.Get<float>();
 	Server_MoveForward(Value);
 }
 void AGoKart::Server_MoveForward_Implementation(const FInputActionValue& Value)
 {
+	UE_LOG(LogTemp, Warning, TEXT("AGoKart::Server_MoveForward_Implementation"));
 	Throttle = Value.Get<float>();
 }
 
@@ -169,7 +175,20 @@ bool AGoKart::Server_MoveForward_Validate(const FInputActionValue& Value)
 }
 void AGoKart::Brake(const FInputActionValue& InputActionValue)
 {
+	UE_LOG(LogTemp, Warning, TEXT("AGoKart::Brake"));
 	Throttle = -1 * InputActionValue.Get<float>();
+	Server_Brake(InputActionValue);
+}
+
+void AGoKart::Server_Brake_Implementation(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("AGoKart::Server_Brake_Implementation"));
+	Throttle = -1 * Value.Get<float>();
+}
+
+bool AGoKart::Server_Brake_Validate(const FInputActionValue& Value)
+{
+	return FMath::Abs(Value.Get<float>()) <= 1;
 }
 
 void AGoKart::StartBrake(const FInputActionValue& InputActionValue)
@@ -179,6 +198,17 @@ void AGoKart::StartBrake(const FInputActionValue& InputActionValue)
 void AGoKart::StopBrake(const FInputActionValue& InputActionValue)
 {
 	Throttle = 0;
+	Server_StopBrake(InputActionValue);
+}
+
+void AGoKart::Server_StopBrake_Implementation(const FInputActionValue& Value)
+{
+	Throttle = 0;
+}
+
+bool AGoKart::Server_StopBrake_Validate(const FInputActionValue& Value)
+{
+	return true;
 }
 
 void AGoKart::MoveRight(const FInputActionValue& Value)

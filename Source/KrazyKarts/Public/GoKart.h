@@ -72,18 +72,21 @@ private:
 
 	void UpdateLocationFromVelocity(float DeltaTime);
 	//Input Func
-	void MoveForward(const FInputActionValue& InputActionValue);
-
+	void MoveForward(const FInputActionValue& Value);
 	UFUNCTION(Server,Reliable,WithValidation)
 	void Server_MoveForward(const FInputActionValue& Value);
 
 	void Brake(const FInputActionValue& InputActionValue);
-	void StartBrake(const FInputActionValue& InputActionValue);
-	void StopBrake(const FInputActionValue& InputActionValue);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_Brake(const FInputActionValue& Value);
 
+	void StartBrake(const FInputActionValue& InputActionValue);
+
+	void StopBrake(const FInputActionValue& InputActionValue);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_StopBrake(const FInputActionValue& Value);
 
 	void MoveRight(const FInputActionValue& Value);
-
 	UFUNCTION(Server,Reliable,WithValidation)
 	void Server_MoveRight(const FInputActionValue& Value);
 private:
@@ -100,6 +103,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	float MinTurningRadius = 10;
 
+	UPROPERTY(Replicated)
 	FVector Velocity;
 
 
@@ -115,8 +119,11 @@ private:
 
 	UFUNCTION()
 	void OnRep_ReplicatedTranform();
+
+	UPROPERTY(Replicated)
 	float Throttle;
 
+	UPROPERTY(Replicated)
 	float SteeringThrow;
 
 
