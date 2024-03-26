@@ -159,6 +159,7 @@ void AGoKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AGoKart::MoveForward(const FInputActionValue& Value)
 {
+	Value.GetValueType()
 	UE_LOG(LogTemp, Warning, TEXT("AGoKart::MoveForward"));
 	Throttle = Value.Get<float>();
 	Server_MoveForward(Value);
