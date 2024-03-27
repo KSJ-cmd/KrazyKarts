@@ -159,14 +159,12 @@ void AGoKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AGoKart::MoveForward(const FInputActionValue& Value)
 {
-	Value.GetValueType()
-	UE_LOG(LogTemp, Warning, TEXT("AGoKart::MoveForward"));
+	
 	Throttle = Value.Get<float>();
 	Server_MoveForward(Value);
 }
 void AGoKart::Server_MoveForward_Implementation(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AGoKart::Server_MoveForward_Implementation"));
 	Throttle = Value.Get<float>();
 }
 
@@ -176,14 +174,12 @@ bool AGoKart::Server_MoveForward_Validate(const FInputActionValue& Value)
 }
 void AGoKart::Brake(const FInputActionValue& InputActionValue)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AGoKart::Brake"));
 	Throttle = -1 * InputActionValue.Get<float>();
 	Server_Brake(InputActionValue);
 }
 
 void AGoKart::Server_Brake_Implementation(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AGoKart::Server_Brake_Implementation"));
 	Throttle = -1 * Value.Get<float>();
 }
 

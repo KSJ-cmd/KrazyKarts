@@ -12,6 +12,35 @@ class UInputAction;
 class UChaosWheeledVehicleMovementComponent;
 struct FInputActionValue;
 
+
+USTRUCT()
+struct FGoKartMove
+{
+	GENERATED_BODY()
+	UPROPERTY()
+	float Throttle;
+	UPROPERTY()
+	float SteeringThrow;
+
+	UPROPERTY()
+	float DeltaTime;
+	UPROPERTY()
+	float Time;
+};
+
+USTRUCT()
+struct FGoKartState
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FTransform Transform;
+	UPROPERTY()
+	FVector Velocity;
+	UPROPERTY()
+	FGoKartMove LastMove;
+};
+
 UCLASS()
 class KRAZYKARTS_API AGoKart : public APawn
 {
