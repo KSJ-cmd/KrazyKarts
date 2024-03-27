@@ -93,11 +93,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UInputAction* ResetVehicleAction;
 private:
-	
+	void SimulateMove(FGoKartMove Move);
+
 	FVector GetAirResistance() const;
 	FVector GetRollingResistance() const;
 
-	void ApplyRotation(float DeltaTime);
+	void ApplyRotation(float DeltaTime, float mSteeringThrow);
 
 	void UpdateLocationFromVelocity(float DeltaTime);
 	//serverSend
@@ -129,7 +130,6 @@ private:
 	UPROPERTY(EditAnywhere)
 	float MinTurningRadius = 10;
 
-	UPROPERTY(Replicated)
 	FVector Velocity;
 
 
@@ -145,10 +145,7 @@ private:
 	UFUNCTION()
 	void OnRep_ServerState();
 
-	UPROPERTY(Replicated)
 	float Throttle;
-
-	UPROPERTY(Replicated)
 	float SteeringThrow;
 
 
