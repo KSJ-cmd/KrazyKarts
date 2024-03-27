@@ -100,24 +100,21 @@ private:
 	void ApplyRotation(float DeltaTime);
 
 	void UpdateLocationFromVelocity(float DeltaTime);
+	//serverSend
+	UFUNCTION(Server,Reliable,WithValidation)
+	void Server_SendMove(FGoKartMove Move);
+
 	//Input Func
 	void MoveForward(const FInputActionValue& Value);
-	UFUNCTION(Server,Reliable,WithValidation)
-	void Server_MoveForward(const FInputActionValue& Value);
 
 	void Brake(const FInputActionValue& InputActionValue);
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_Brake(const FInputActionValue& Value);
-
+	
 	void StartBrake(const FInputActionValue& InputActionValue);
 
 	void StopBrake(const FInputActionValue& InputActionValue);
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_StopBrake(const FInputActionValue& Value);
+	
 
 	void MoveRight(const FInputActionValue& Value);
-	UFUNCTION(Server,Reliable,WithValidation)
-	void Server_MoveRight(const FInputActionValue& Value);
 private:
 
 
@@ -143,11 +140,10 @@ private:
 	UPROPERTY(EditAnywhere)
 	float RollingResistanceCoefficient = 0.015;
 
-	UPROPERTY(ReplicatedUsing = OnRep_ReplicatedTranform)
-	FTransform ReplicatedTranform;
-
+	UPROPERTY(ReplicatedUsing = OnRep_ServerState)
+	FGoKartState ServerState;
 	UFUNCTION()
-	void OnRep_ReplicatedTranform();
+	void OnRep_ServerState();
 
 	UPROPERTY(Replicated)
 	float Throttle;

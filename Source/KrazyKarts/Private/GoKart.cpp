@@ -67,13 +67,24 @@ void AGoKart::UpdateLocationFromVelocity(float DeltaTime)
 	}
 }
 
+void AGoKart::Server_SendMove_Implementation(FGoKartMove Move)
+{
+	SteeringThrow = Move.SteeringThrow;
+	Throttle = Move.Throttle;
+	
+}
+
+bool AGoKart::Server_SendMove_Validate(FGoKartMove Move)
+{
+	return true;
+}
+
 void AGoKart::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AGoKart, ReplicatedTranform);
+	DOREPLIFETIME(AGoKart, ServerState);
 	DOREPLIFETIME(AGoKart, Throttle);
 	DOREPLIFETIME(AGoKart, SteeringThrow);
-	DOREPLIFETIME(AGoKart, Velocity);
 
 }
 
@@ -98,7 +109,16 @@ FString GetEnumText(ENetRole Role)
 void AGoKart::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if(IsLocallyControlled())
+	{
+		FGoKartMove Move;
+		Move.DeltaTime = DeltaTime;
+		Move.SteeringThrow = SteeringThrow;
+		Move.Throttle = Throttle;
+		//Move.Time
 
+		Server_SendMove(Move);
+	}
 	const FVector Force =
 		GetActorForwardVector() * MaxDrivingForce * Throttle +
 		GetAirResistance() + GetRollingResistance();
@@ -110,7 +130,8 @@ void AGoKart::Tick(float DeltaTime)
 
 	if (HasAuthority())
 	{
-		ReplicatedTranform = GetActorTransform();
+		ServerState.Transform = GetTransform();
+		ServerState.Velocity = Velocity;
 	}
 	
 	DrawDebugString(GetWorld(), FVector(0, 0, 100), GetEnumText(GetLocalRole()), this, FColor::White, DeltaTime);
@@ -161,32 +182,13 @@ void AGoKart::MoveForward(const FInputActionValue& Value)
 {
 	
 	Throttle = Value.Get<float>();
-	Server_MoveForward(Value);
-}
-void AGoKart::Server_MoveForward_Implementation(const FInputActionValue& Value)
-{
-	Throttle = Value.Get<float>();
 }
 
-bool AGoKart::Server_MoveForward_Validate(const FInputActionValue& Value)
-{
-	return FMath::Abs(Value.Get<float>()) <= 1;
-}
 void AGoKart::Brake(const FInputActionValue& InputActionValue)
 {
 	Throttle = -1 * InputActionValue.Get<float>();
-	Server_Brake(InputActionValue);
 }
 
-void AGoKart::Server_Brake_Implementation(const FInputActionValue& Value)
-{
-	Throttle = -1 * Value.Get<float>();
-}
-
-bool AGoKart::Server_Brake_Validate(const FInputActionValue& Value)
-{
-	return FMath::Abs(Value.Get<float>()) <= 1;
-}
 
 void AGoKart::StartBrake(const FInputActionValue& InputActionValue)
 {
@@ -195,38 +197,18 @@ void AGoKart::StartBrake(const FInputActionValue& InputActionValue)
 void AGoKart::StopBrake(const FInputActionValue& InputActionValue)
 {
 	Throttle = 0;
-	Server_StopBrake(InputActionValue);
+
 }
 
-void AGoKart::Server_StopBrake_Implementation(const FInputActionValue& Value)
-{
-	Throttle = 0;
-}
-
-bool AGoKart::Server_StopBrake_Validate(const FInputActionValue& Value)
-{
-	return true;
-}
 
 void AGoKart::MoveRight(const FInputActionValue& Value)
 {
 	SteeringThrow = Value.Get<float>();
-	Server_MoveRight(Value);
+	
 }
 
-void AGoKart::OnRep_ReplicatedTranform()
+void AGoKart::OnRep_ServerState()
 {
-	SetActorTransform(ReplicatedTranform);
+	SetActorTransform(ServerState.Transform);
+	Velocity = ServerState.Velocity;
 }
-
-void AGoKart::Server_MoveRight_Implementation(const FInputActionValue& Value)
-{
-	SteeringThrow = Value.Get<float>();
-}
-
-bool AGoKart::Server_MoveRight_Validate(const FInputActionValue& Value)
-{
-	return FMath::Abs(Value.Get<float>()) <= 1;
-}
-
-
