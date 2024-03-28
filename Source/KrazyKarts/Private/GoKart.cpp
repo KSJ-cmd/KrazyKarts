@@ -131,28 +131,29 @@ FString GetEnumText(ENetRole Role)
 void AGoKart::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
 	if (GetLocalRole() == ROLE_AutonomousProxy)
 	{
 		const auto Move = CreateMove(DeltaTime);
 		SimulateMove(Move);
 
 		UnacknowledgedMoves.Add(Move);
-		
+
 		Server_SendMove(Move);
 
 	}
-	if(GetLocalRole() == ROLE_Authority&&GetRemoteRole() ==ROLE_SimulatedProxy)
+	if (GetLocalRole() == ROLE_Authority && GetRemoteRole() == ROLE_SimulatedProxy)
 	{
 		const auto Move = CreateMove(DeltaTime);
 		Server_SendMove(Move);
 	}
 
-	if(GetLocalRole() == ROLE_SimulatedProxy)
+	if (GetLocalRole() == ROLE_SimulatedProxy)
 	{
 		SimulateMove(ServerState.LastMove);
 	}
 	DrawDebugString(GetWorld(), FVector(0, 0, 100), GetEnumText(GetLocalRole()), this, FColor::White, DeltaTime);
+	DrawDebugString(GetWorld(), FVector(0, 0, 200), GetEnumText(GetRemoteRole()), this, FColor::White, DeltaTime);
 }
 
 // Called to bind functionality to input
