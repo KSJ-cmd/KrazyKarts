@@ -6,6 +6,7 @@
 #include "EnhancedInputComponent.h"
 
 #include "DrawDebugHelpers.h"
+#include "GameFramework/GameStateBase.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -28,10 +29,8 @@ void AGoKart::BeginPlay()
 	}
 }
 
-void AGoKart::SimulateMove(FGoKartMove Move)
-{
-	Move.SteeringThrow;
-	
+void AGoKart::SimulateMove(const FGoKartMove& Move)
+{	
 	const float DeltaTime = Move.DeltaTime;
 	const FVector Force =
 		GetActorForwardVector() * MaxDrivingForce * Move.Throttle +
@@ -64,7 +63,7 @@ FGoKartMove AGoKart::CreateMove(float deltaTime)
 	Move.DeltaTime = deltaTime;
 	Move.SteeringThrow = SteeringThrow;
 	Move.Throttle = Throttle;
-	Move.Time = GetWorld()->TimeSeconds;
+	Move.Time = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
 	return Move;
 }
 
@@ -138,10 +137,11 @@ void AGoKart::Tick(float DeltaTime)
 		if (!HasAuthority())
 		{
 			UnacknowledgedMoves.Add(Move);
+			
 		}
 
 		Server_SendMove(Move);
-	
+
 		SimulateMove(Move);
 	}
 	
@@ -225,6 +225,10 @@ void AGoKart::OnRep_ServerState()
 	SetActorTransform(ServerState.Transform);
 	Velocity = ServerState.Velocity;
 	ClearAcknowledgedMoves(ServerState.LastMove);
+
+	for (const auto& move : UnacknowledgedMoves) {
+		SimulateMove(move);
+	}
 }
 void AGoKart::Server_SendMove_Implementation(FGoKartMove Move)
 {

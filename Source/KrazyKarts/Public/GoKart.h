@@ -93,7 +93,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UInputAction* ResetVehicleAction;
 private:
-	void SimulateMove(FGoKartMove Move);
+	void SimulateMove(const FGoKartMove& Move);
 
 	void ClearAcknowledgedMoves(FGoKartMove lastMove);
 	FGoKartMove CreateMove(float deltaTime);
