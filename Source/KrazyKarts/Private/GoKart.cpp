@@ -22,6 +22,12 @@ AGoKart::AGoKart()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UGoKartMovementComponent is nullptr"));
 	}
+
+	Replicator = CreateDefaultSubobject<UGoKartMovementReplicator>(TEXT("Replicator"));
+	if (Replicator == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UGoKartMovementReplicator is nullptr"));
+	}
 }
 
 // Called when the game starts or when spawned
@@ -34,26 +40,7 @@ void AGoKart::BeginPlay()
 	}
 }
 
-void AGoKart::ClearAcknowledgedMoves(FGoKartMove lastMove)
-{
-	TArray<FGoKartMove> newMoves;
 
-	for (const auto& move : UnacknowledgedMoves)
-	{
-		if (move.Time > lastMove.Time)
-		{
-			newMoves.Add(move);
-		}
-	}
-	UnacknowledgedMoves = newMoves;
-}
-
-
-void AGoKart::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AGoKart, ServerState);
-}
 
 FString GetEnumText(ENetRole Role)
 {
@@ -77,26 +64,7 @@ void AGoKart::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (GetLocalRole() == ROLE_AutonomousProxy)
-	{
-		const auto Move = Movement->CreateMove(DeltaTime);
-		Movement->SimulateMove(Move);
-
-		UnacknowledgedMoves.Add(Move);
-
-		Server_SendMove(Move);
-
-	}
-	if (GetLocalRole() == ROLE_Authority && IsLocallyControlled())
-	{
-		const auto Move = Movement->CreateMove(DeltaTime);
-		Server_SendMove(Move);
-	}
-
-	if (GetLocalRole() == ROLE_SimulatedProxy)
-	{
-		Movement->SimulateMove(ServerState.LastMove);
-	}
+	
 	DrawDebugString(GetWorld(), FVector(0, 0, 100), GetEnumText(GetLocalRole()), this, FColor::White, DeltaTime);
 	DrawDebugString(GetWorld(), FVector(0, 0, 200), GetEnumText(GetRemoteRole()), this, FColor::White, DeltaTime);
 }
@@ -172,25 +140,3 @@ void AGoKart::MoveRight(const FInputActionValue& Value)
 	
 }
 
-void AGoKart::OnRep_ServerState()
-{
-	SetActorTransform(ServerState.Transform);
-	Movement->SetVelocity(ServerState.Velocity);
-	ClearAcknowledgedMoves(ServerState.LastMove);
-
-	for (const auto& move : UnacknowledgedMoves) {
-		Movement->SimulateMove(move);
-	}
-}
-void AGoKart::Server_SendMove_Implementation(FGoKartMove Move)
-{
-	Movement->SimulateMove(Move);
-	ServerState.LastMove = Move;
-	ServerState.Transform = GetTransform();
-	ServerState.Velocity = Movement->GetVelocity();
-}
-
-bool AGoKart::Server_SendMove_Validate(FGoKartMove Move)
-{
-	return true;
-}
