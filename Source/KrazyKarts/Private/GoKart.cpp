@@ -112,7 +112,6 @@ void AGoKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AGoKart::MoveForward(const FInputActionValue& Value)
 {
-	
 	Movement->SetThrottle(Value.Get<float>());
 }
 

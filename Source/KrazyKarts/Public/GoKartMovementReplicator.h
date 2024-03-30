@@ -47,15 +47,17 @@ private:
 
 	void ClearAcknowledgedMoves(FGoKartMove lastMove);
 
-	
-private:
-	UPROPERTY(ReplicatedUsing = OnRep_ServerState)
-	FGoKartState ServerState;
 	UFUNCTION()
 	void OnRep_ServerState();
 
+	void UpdateServerState(const FGoKartMove& Move);
+private:
+	UPROPERTY(ReplicatedUsing = OnRep_ServerState)
+	FGoKartState ServerState;
+	
+
 	TArray<FGoKartMove> UnacknowledgedMoves;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	UGoKartMovementComponent* Movement;
 };

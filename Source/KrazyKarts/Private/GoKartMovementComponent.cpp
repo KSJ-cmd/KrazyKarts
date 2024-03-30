@@ -24,13 +24,35 @@ void UGoKartMovementComponent::BeginPlay()
 	// ...
 	
 }
-
+FString GetEnumText2(ENetRole Role)
+{
+	switch (Role)
+	{
+	case ROLE_None:
+		return "None";
+	case ROLE_SimulatedProxy:
+		return "SimulatedProxy";
+	case ROLE_AutonomousProxy:
+		return "AutonomousProxy";
+	case ROLE_Authority:
+		return "Authority";
+	default:
+		return "ERROR";
+	}
+}
 
 // Called every frame
 void UGoKartMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	//UE_LOG(LogTemp, Warning, TEXT("%s : %s"), *GetOwner()->GetName(), *GetEnumText2(GetOwner()->GetRemoteRole()));
 
+	DrawDebugString(GetWorld(), FVector(0, 0, 300), GetEnumText2(GetOwner()->GetRemoteRole()), GetOwner(), FColor::Red, DeltaTime);
+	if (GetOwnerRole() == ROLE_AutonomousProxy || GetOwner()->GetRemoteRole() == ROLE_SimulatedProxy||Cast<APawn>(GetOwner())->IsLocallyControlled())
+	{
+		LastMove = CreateMove(DeltaTime);
+		SimulateMove(LastMove);
+	}
 	// ...
 }
 
@@ -77,6 +99,11 @@ void UGoKartMovementComponent::SetThrottle(float newThrottle)
 void UGoKartMovementComponent::SetSteeringThrow(float newSteeringThrow)
 {
 	SteeringThrow = newSteeringThrow;
+}
+
+FGoKartMove UGoKartMovementComponent::GetLastMove() const
+{
+	return LastMove;
 }
 
 FVector UGoKartMovementComponent::GetAirResistance() const

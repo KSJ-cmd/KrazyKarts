@@ -41,14 +41,17 @@ public:
 
 	void SimulateMove(const FGoKartMove& Move);
 
-	FGoKartMove CreateMove(float deltaTime);
+	
 
 	FVector GetVelocity() const;
 
 	void SetVelocity(FVector newVelocity);
 	void SetThrottle(float newThrottle);
 	void SetSteeringThrow(float newSteeringThrow);
+
+	FGoKartMove GetLastMove() const;
 private:
+	FGoKartMove CreateMove(float deltaTime);
 
 	FVector GetAirResistance() const;
 	FVector GetRollingResistance() const;
@@ -81,4 +84,6 @@ private:
 
 	float Throttle;
 	float SteeringThrow;
+
+	FGoKartMove LastMove;
 };

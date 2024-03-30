@@ -87,10 +87,10 @@ private:
 	void MoveRight(const FInputActionValue& Value);
 private:
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	UGoKartMovementComponent* Movement;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	UGoKartMovementReplicator* Replicator;
 	
 };
