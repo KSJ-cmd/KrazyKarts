@@ -46,15 +46,19 @@ void UGoKartMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	//UE_LOG(LogTemp, Warning, TEXT("%s : %s"), *GetOwner()->GetName(), *GetEnumText2(GetOwner()->GetRemoteRole()));
+	if (GetOwner()->GetInstigatorController() != nullptr) {
+		DrawDebugString(GetWorld(), FVector(0, 0, 300), GetEnumText2(GetOwner()->GetInstigatorController()->GetLocalRole()), GetOwner(), FColor::Red, DeltaTime);
+		DrawDebugString(GetWorld(), FVector(0, 0, 400), GetEnumText2(GetOwner()->GetInstigatorController()->GetRemoteRole()), GetOwner(), FColor::Red, DeltaTime);
+	}
+	if (GetOwner()->GetInstigatorController() == nullptr) return;
 
-	DrawDebugString(GetWorld(), FVector(0, 0, 300), GetEnumText2(GetOwner()->GetRemoteRole()), GetOwner(), FColor::Red, DeltaTime);
-	if (GetOwnerRole() == ROLE_AutonomousProxy || GetOwner()->GetRemoteRole() == ROLE_SimulatedProxy||Cast<APawn>(GetOwner())->IsLocallyControlled())
+	if (GetOwnerRole() == ROLE_AutonomousProxy || Cast<APawn>(GetOwner())->IsLocallyControlled())
 	{
 		LastMove = CreateMove(DeltaTime);
 		SimulateMove(LastMove);
 	}
 	// ...
-}
+};
 
 void UGoKartMovementComponent::SimulateMove(const FGoKartMove& Move)
 {

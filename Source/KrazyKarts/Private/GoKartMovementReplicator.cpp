@@ -27,7 +27,30 @@ void UGoKartMovementReplicator::BeginPlay()
 	Movement = GetOwner()->FindComponentByClass<UGoKartMovementComponent>();
 	
 }
+static FString GetEnumNetMode(ENetMode mode)
+{
+	switch (mode) {
+	case NM_Standalone:
+		return "NM_Standalone";
+		break;
+	case NM_DedicatedServer:
+		return "NM_DedicatedServer";
+		break;
+	case NM_ListenServer:
+		return "NM_ListenServer";
+		break;
+	case NM_Client:
+		return "NM_Client";
+		break;
+	case NM_MAX:
+		return "NM_MAX";
+		break;
+		default:
+			return "";
+	}
 
+	
+}
 
 // Called every frame
 void UGoKartMovementReplicator::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -35,24 +58,29 @@ void UGoKartMovementReplicator::TickComponent(float DeltaTime, ELevelTick TickTy
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	if (Movement == nullptr) return;
-	const auto Move = Movement->GetLastMove(); //Cast<APawn>(GetOwner())->IsLocallyControlled()
-	if (GetOwnerRole() == ROLE_AutonomousProxy)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("%s is ROLE_AutonomousProxy"), *GetOwner()->GetName());
-		UnacknowledgedMoves.Add(Move);
-		Server_SendMove(Move);
+	if (GetOwner()->GetInstigatorController() != nullptr) {
+
+		const auto Move = Movement->GetLastMove(); //Cast<APawn>(GetOwner())->IsLocallyControlled()
+
+		if (GetOwnerRole() == ROLE_AutonomousProxy )
+		{
+			Server_SendMove(Move);
+
+		}
+
+		// We are the server and in control of the pawn.
+		if (Cast<APawn>(GetOwner())->IsLocallyControlled())
+		{
+			//UE_LOG(LogTemp, Warning, TEXT("%s is GetOwner()->GetInstigatorController()->GetRemoteRole() == ROLE_SimulatedProxy == UpdateServerState"), *GetOwner()->GetName());
+			UpdateServerState(Move);
+		}
 	}
-	
-	// We are the server and in control of the pawn.
-	if (GetOwner()->GetRemoteRole() == ROLE_AutonomousProxy)
-	{
-		UpdateServerState(Move);
-	}
-	
-	if (GetOwnerRole() == ROLE_SimulatedProxy)
+	//UE_LOG(LogTemp, Warning, TEXT("GetEnumNetMode : %s = %s is OnRep_ServerState UnacknowledgedMoves : %d "),*GetEnumNetMode(GetNetMode()), *GetOwner()->GetName(), UnacknowledgedMoves.Num());
+	if (GetOwnerRole()==ROLE_SimulatedProxy)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s is ROLE_SimulatedProxy"), *GetOwner()->GetName());
-		Movement->SimulateMove(ServerState.LastMove);
+		//Movement->SimulateMove(ServerState.LastMove);
+		ClientTick(DeltaTime);
 	}
 	// ...
 }
@@ -80,14 +108,39 @@ void UGoKartMovementReplicator::GetLifetimeReplicatedProps(TArray< FLifetimeProp
 
 void UGoKartMovementReplicator::OnRep_ServerState()
 {
+	switch (GetOwnerRole()) {
+	
+	case ROLE_SimulatedProxy:
+		SimulatedProxy_OnRep_ServerState();
+		break;
+	case ROLE_AutonomousProxy:
+		AutonomousProxy_OnRep_ServerState();
+		break;
+	default:
+		return;
+	}
+}
+
+void UGoKartMovementReplicator::AutonomousProxy_OnRep_ServerState()
+{
 	if (Movement == nullptr) return;
+	//UE_LOG(LogTemp, Warning, TEXT("%s is OnRep_ServerState deltaTime : %f, SteeringThrow : %f, Throttle : %f, Time : %f"), *GetOwner()->GetName(),ServerState.LastMove.DeltaTime, ServerState.LastMove.SteeringThrow, ServerState.LastMove.Throttle, ServerState.LastMove.Time);
 	GetOwner()->SetActorTransform(ServerState.Transform);
 	Movement->SetVelocity(ServerState.Velocity);
 	ClearAcknowledgedMoves(ServerState.LastMove);
+	//UE_LOG(LogTemp, Warning, TEXT("%s is OnRep_ServerState UnacknowledgedMoves : %d "), *GetOwner()->GetName(), UnacknowledgedMoves.Num());
 
 	for (const auto& move : UnacknowledgedMoves) {
 		Movement->SimulateMove(move);
 	}
+}
+
+void UGoKartMovementReplicator::SimulatedProxy_OnRep_ServerState()
+{
+	ClientTimeBetweenLastUpdates = ClientTimeSinceUpdate;
+	ClientTimeSinceUpdate = 0;
+
+	ClientStartTransform = GetOwner()->GetTransform();
 }
 
 void UGoKartMovementReplicator::UpdateServerState(const FGoKartMove& Move)
@@ -95,6 +148,29 @@ void UGoKartMovementReplicator::UpdateServerState(const FGoKartMove& Move)
 	ServerState.LastMove = Move;
 	ServerState.Transform = GetOwner()->GetTransform();
 	ServerState.Velocity = Movement->GetVelocity();
+}
+
+void UGoKartMovementReplicator::ClientTick(float DeltaTime)
+{
+	ClientTimeSinceUpdate += DeltaTime;
+
+	if (ClientTimeBetweenLastUpdates < KINDA_SMALL_NUMBER) return;
+
+	const auto Target = ServerState.Transform.GetLocation();
+	const auto Start = ClientStartTransform.GetLocation();
+	const float LerpRatio = ClientTimeSinceUpdate / ClientTimeBetweenLastUpdates;
+
+	const auto newVector = FMath::LerpStable(Start, Target, LerpRatio);
+
+	GetOwner()->SetActorLocation(newVector);
+
+
+	const auto TargetRot = ServerState.Transform.GetRotation();
+	const auto StartRot = ClientStartTransform.GetRotation();
+
+	const auto newRotator = FQuat::Slerp(StartRot, TargetRot, LerpRatio);
+
+	GetOwner()->SetActorRotation(newRotator);
 }
 
 void UGoKartMovementReplicator::Server_SendMove_Implementation(FGoKartMove Move)

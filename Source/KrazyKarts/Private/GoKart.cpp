@@ -38,6 +38,7 @@ void AGoKart::BeginPlay()
 	{
 		NetUpdateFrequency = 1;
 	}
+	SetReplicateMovement(false);
 }
 
 
