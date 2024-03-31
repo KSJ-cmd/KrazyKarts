@@ -63,7 +63,7 @@ private:
 
 	TArray<FGoKartMove> UnacknowledgedMoves;
 	FTransform ClientStartTransform;
-
+	FVector ClientStartVelocity;
 	float ClientTimeSinceUpdate;
 	float ClientTimeBetweenLastUpdates;
 	UPROPERTY(VisibleAnywhere)
