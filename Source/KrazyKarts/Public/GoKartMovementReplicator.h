@@ -84,15 +84,20 @@ private:
 	FGoKartState ServerState;
 
 	TArray<FGoKartMove> UnacknowledgedMoves;
+
 	FTransform ClientStartTransform;
 	FVector ClientStartVelocity;
 	float ClientTimeSinceUpdate;
 	float ClientTimeBetweenLastUpdates;
+
+	float ClientSimulatedTimes;
+
 	UPROPERTY(VisibleAnywhere)
 	UGoKartMovementComponent* Movement;
 
 	UPROPERTY()
 	USceneComponent* MeshOffsetRoot;
+
 	UFUNCTION(BlueprintCallable)
 	void SetMeshOffsetRoot(USceneComponent* Root) { MeshOffsetRoot = Root; }
 };
