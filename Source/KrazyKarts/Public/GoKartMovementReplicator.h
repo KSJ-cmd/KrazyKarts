@@ -72,9 +72,9 @@ private:
 	void UpdateServerState(const FGoKartMove& Move);
 	float VelocityDerivative() const;
 	FHermiteCubicSpline CreateSpline() const;
+	void InterpLocation(const FHermiteCubicSpline& Spline, float LerpRatio) const;
 	void InterpRotation(float LerpRatio) const;
 	void InterpVelocity(const FHermiteCubicSpline& Spline, float LerpRatio) const;
-	void InterpLocation(const FHermiteCubicSpline& Spline, float LerpRatio) const;
 	float LerpRatio() const;
 	void ClientTick(float DeltaTime);
 
@@ -90,4 +90,9 @@ private:
 	float ClientTimeBetweenLastUpdates;
 	UPROPERTY(VisibleAnywhere)
 	UGoKartMovementComponent* Movement;
+
+	UPROPERTY()
+	USceneComponent* MeshOffsetRoot;
+	UFUNCTION(BlueprintCallable)
+	void SetMeshOffsetRoot(USceneComponent* Root) { MeshOffsetRoot = Root; }
 };

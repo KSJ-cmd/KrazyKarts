@@ -141,8 +141,13 @@ void UGoKartMovementReplicator::SimulatedProxy_OnRep_ServerState()
 	ClientTimeBetweenLastUpdates = ClientTimeSinceUpdate;
 	ClientTimeSinceUpdate = 0;
 
-	ClientStartTransform = GetOwner()->GetTransform();
+	if (MeshOffsetRoot != nullptr)
+	{
+		ClientStartTransform.SetLocation(MeshOffsetRoot->GetComponentLocation());
+		ClientStartTransform.SetRotation(MeshOffsetRoot->GetComponentQuat());
+	}
 	ClientStartVelocity = Movement->GetVelocity();
+	GetOwner()->SetActorTransform(ServerState.Transform);
 }
 
 void UGoKartMovementReplicator::UpdateServerState(const FGoKartMove& Move)
@@ -168,34 +173,40 @@ FHermiteCubicSpline UGoKartMovementReplicator::CreateSpline() const
 	return Spline;
 }
 
+void UGoKartMovementReplicator::InterpLocation(const FHermiteCubicSpline& Spline, float LerpRatio) const
+{
+	const auto newVector = Spline.InterpLocation(LerpRatio);
+	if (MeshOffsetRoot != nullptr)
+	{
+		MeshOffsetRoot->SetWorldLocation(newVector);
+	}
+}
+
 void UGoKartMovementReplicator::InterpRotation(const float LerpRatio) const
 {
 	const auto TargetRot = ServerState.Transform.GetRotation();
 	const auto StartRot = ClientStartTransform.GetRotation();
 
-	const auto newRotator = FQuat::Slerp(StartRot, TargetRot, LerpRatio);
+	const auto NewRotation = FQuat::Slerp(StartRot, TargetRot, LerpRatio);
 
-	GetOwner()->SetActorRotation(newRotator);
+	if (MeshOffsetRoot != nullptr)
+	{
+		MeshOffsetRoot->SetWorldRotation(NewRotation);
+	}
 }
 
 void UGoKartMovementReplicator::InterpVelocity(const FHermiteCubicSpline& Spline, float LerpRatio) const
 {
 	const FVector NewDerivative = Spline.InterpDerivative(LerpRatio);
 	const FVector NewVelocity = NewDerivative / VelocityDerivative();
+
 	Movement->SetVelocity(NewVelocity);
-}
-void UGoKartMovementReplicator::InterpLocation(const FHermiteCubicSpline& Spline, float LerpRatio) const
-{
-	const auto newVector = Spline.InterpLocation(LerpRatio);
-	GetOwner()->SetActorLocation(newVector);
 }
 
 float UGoKartMovementReplicator::LerpRatio() const
 {
 	return ClientTimeSinceUpdate / ClientTimeBetweenLastUpdates;
 }
-
-
 
 void UGoKartMovementReplicator::ClientTick(float DeltaTime)
 {
