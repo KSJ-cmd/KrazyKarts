@@ -237,7 +237,7 @@ void UGoKartMovementReplicator::Server_SendMove_Implementation(FGoKartMove Move)
 bool UGoKartMovementReplicator::Server_SendMove_Validate(FGoKartMove Move)
 {
 
-	float ProposeedTime = ClientSimulatedTimes += Move.DeltaTime;
+	float ProposeedTime = ClientSimulatedTimes + Move.DeltaTime;
 	const bool ClientNotRunningAhead = ProposeedTime < GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
 	if(!ClientNotRunningAhead)
 	{
